@@ -1,0 +1,12 @@
+An esp32-based IOT-Device, that can transmit analog or digital sensor data on your network via http-protokoll.
+My particular device is the ESP32-E Firebeetly by DfRobot. To ensure compatibility you should rebuild the project with your ESP32.
+
+
+I intendet two possible uses:
+1. Access data directly through my Browser.
+2. Have a homeserver read the data into a centralized application.
+
+
+Create a file named secrets.h inside the src-folder and declare variables for your wifi credentials:
+    const char* ssid = "yourWifisName";
+    const char* password = "yourWifisPassword";
