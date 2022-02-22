@@ -30,7 +30,7 @@ const char* PARAM_MESSAGE = "message";
 
 int sensorValue = 0;
 
-const String htmlPage = "<pre>Sensor 1: </pre><object id='value' data='sensorValue'></object><script onload='clearInterval(myVar)'>var obj = document.getElementById('value');let myVar = setInterval(myTimer, 1000);function myTimer(){obj.data=obj.data;};</script>";
+const String htmlPage = "<h3>Sensor 1: </h3><object id='value' data='sensorValue' height='45' width='80'></object><script onload='clearInterval(myVar)'>var obj = document.getElementById('value');let myVar = setInterval(myTimer, 5000);function myTimer(){obj.data=obj.data;};</script>";
 
 
 void notFound(AsyncWebServerRequest *request) {
@@ -58,7 +58,7 @@ void setup() {
     });
 
     server.on("/sensorValue", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/plain", String(sensorValue));
+        request->send(200, "text/html", "<p>" + String(sensorValue) + "</p>");
     });
    
 
