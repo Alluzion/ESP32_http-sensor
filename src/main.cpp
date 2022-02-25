@@ -8,40 +8,52 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
-
 #include <ESPAsyncWebServer.h>
+
+#include "sensor.h"
 
 #include "secrets.h" 
 
 
-
-#define SENSOR_PIN1 A3
-
-
-
+// define naming of components 
+#define DEVICE_NAME "Raum 1"
+Sensor sensors[3] = {Sensor("brightness", A3), Sensor("pressure", A2), Sensor("temperature", A1)}; //sensordata as an Object from sensor.h for sake of scalability
 
 
 
+
+
+
+
+
+//css, js and html separated for easier editing
+const String html = {
+    "<style>.sensor{border-style: inset;width: fit-content;padding: 0.8em;}</style>"
+    "<script onload='clearInterval(myInterval);'>let myInterval=setInterval(changeValues, 1000);async function request (){const response = await fetch('data');return response.json()} function changeValues (){request().then(data=>{document.getElementById('brightness').innerHTML=data.brightness;});};</script>"
+    "<body><h1>"DEVICE_NAME"</h1>"
+    "<div style='diplay: flex;'>"
+    "<h2>Sensoren</h2>"
+    "<div class='sensor'>"+sensors[0].name+" <a id='"+sensors[0].name+"'>-</a></div>"
+    "<div class='sensor'>"+sensors[1].name+" <a id='"+sensors[1].name+"'>-</a></div>"
+    "<div class='sensor'>"+sensors[2].name+" <a id='"+sensors[2].name+"'>-</a></div>"
+    "</div>"
+    "<div>"
+    "<h2>Steuerelemente</h2>"
+    "</div><body>"
+    };
+    
 AsyncWebServer server(80);
-
-
-const char* PARAM_MESSAGE = "message";
-
-int sensorValue = 0;
-
-const String htmlPage =  "<script>let myInterval=setInterval(something, 1000);async function request (){const response = await fetch('http://192.168.2.160/sensorValue');return response.json()} function something (){request().then(data=>{document.getElementById('sensorValue').innerHTML=data.brightness;});};  </script><h3>Sensoren Raum 1: </h3><p onload='clearInterval(myInterval);'>Brightness <a id='sensorValue'>-%</a></p>";
-//"<h3>Sensoren Raum 1: </h3><p>Brightness <object id='value' data='sensorValue' height='40' width='80'></object></p><script onload='clearInterval(intervall)'>var obj = document.getElementById('value');let intervall = setInterval(reloadObj, 2500);function reloadObj(){obj.data=obj.data;};</script>";
 
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
 }
 
 void setup() {
-    pinMode(SENSOR_PIN1, INPUT);
     
 
 
     Serial.begin(9600);
+
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
@@ -53,11 +65,11 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/html", String(htmlPage));
+        request->send(200, "text/html", html);
     });
 
-    server.on("/sensorValue", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/plain", "{\"brightness\": \"" + String(sensorValue) + " %\"}");
+    server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(200, "text/plain", "{\"brightness\": \"" + String(100*(4096 - sensors[0].value )/4096) + " %\"}");
     });
    
 
@@ -67,6 +79,6 @@ void setup() {
 }
 
 void loop() {
-sensorValue = 100*(4096 - analogRead(SENSOR_PIN1))/4096;
-delay(1000);
+    sensors[0].analog();
+    delay(1000);
 }
