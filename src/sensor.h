@@ -4,11 +4,18 @@ String sensorhtml = "";
 
 class Sensor{
     public:
-    String name;
     int pin;
-    int value = 0;
-    Sensor(String NAME, int PIN) :name{NAME}, pin{PIN}{
-        sensorhtml += "<div class='sensor'>"+name+" <a style='float:right;' id='"+name+"'>-</a></div>";
+    String name;
+    String unit;
+    float offset;
+    float factor;
+    String value;
+    Sensor(int PIN, String NAME) : pin{PIN}, name{NAME}{
+        sensorhtml += "<div class='sensor'>"+name+" <a style='float:right;' id='"+name+"'>-</a></div><script>sensors.push('"+name+"'); </script>";
+        pinMode(pin, INPUT);
+    }
+    Sensor(int PIN, String NAME, String UNIT, float OFFSET, float FACTOR) : pin{PIN}, name{NAME}, unit{UNIT}, offset{OFFSET}, factor{FACTOR}{
+        sensorhtml += "<div class='sensor'>"+name+" <a style='float:right;' id='"+name+"'>-</a></div><script>sensors.push('"+name+"'); </script>";
         pinMode(pin, INPUT);
     }
 
@@ -16,11 +23,19 @@ class Sensor{
         pinMode(pin, INPUT_PULLUP);
     }
 
-    void digital(){
-        value = digitalRead(pin);
+    bool digital(){
+        if(digitalRead(pin)){
+            value = "on";
+            return true;
+        }
+        else{
+            value = "of";
+            return false;
+        }
+        
     }
 
     void analog(){
-        value = analogRead(pin);
+        value =  String(factor*analogRead(pin) + offset, 0) + unit;
     }
 };

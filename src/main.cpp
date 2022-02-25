@@ -15,23 +15,25 @@
 #include "secrets.h" 
 
 
-// define naming of components 
-#define DEVICE_NAME "Raum 1"
-Sensor sensors[3] = {Sensor("Brightness", A1), Sensor("Pressure", A2), Sensor("Temperture", A3)}; //sensordata as an Object from sensor.h for sake of scalability
-
+//define namie of components 
+#define DEVICE_NAME "Device 1"
+Sensor sensors[2] = {
+    Sensor(A1, "Brightness", "%", 100, -0.0244), //Photeresistior at A1
+    Sensor(D9, "Door")
+    }; 
 
 
 
 
 
 //css, js and html separated for easier editing
-const String index_html = {
-    "<style>div{width:100%; diplay: flex;float:left;}div.sensor{border-style: inset;width: 10em; padding: 0.5em;}</style>"
-    "<script onload='clearInterval(myInterval);'>const sensors = ['"+sensors[0].name+"','"+sensors[1].name+"','"+sensors[2].name+"'];let myInterval=setInterval(changeValues, 1000);async function request (){const response = await fetch('data');return response.json()} function changeValues (){for(let x in sensors){update(sensors[x]);}} function update(valueId){request().then(data=>{document.getElementById(valueId).innerHTML=data[valueId];});};</script>"
+const String index_html = 
+    "<style>div{width:100%; diplay: flex;float:left;}div.sensor{border-style: inset;width: 8em; padding: 0.8em;}</style>"
+    "<script onload='clearInterval(myInterval);'>const sensors=[];let myInterval=setInterval(changeValues, 1000);async function request (){const response = await fetch('data');return response.json()} function changeValues (){request().then(data=>{dt=data;for(let x in sensors){document.getElementById(sensors[x]).innerHTML=dt[sensors[x]];};});};</script>"
     "<h1>"DEVICE_NAME"</h1>"
     "<div><h2>Sensoren</h2></div>"
-    "<div>"+sensorhtml+"</div>"
-    };
+    "<div>"+sensorhtml+"</div>";
+    ;
     
 AsyncWebServer server(80);
 
@@ -40,10 +42,8 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void setup() {
-    
-
-
     Serial.begin(9600);
+    sensors[1].pullup();
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
@@ -60,7 +60,13 @@ void setup() {
     });
 
     server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/json", "{\""+sensors[0].name+"\": \"" + String(100*(4096 - sensors[0].value )/4096) + " %\", \""+sensors[1].name+"\": \"" + String(sensors[1].value) + "\", \""+sensors[2].name+"\": \"" + String(sensors[2].value) + "\"}");
+        String json = "{";
+        for(int i=0; i<sizeof(sensors)/sizeof(*sensors); i++){
+            if (i != 0) json += ", ";
+            json += "\"" + sensors[i].name + "\": \"" + sensors[i].value  + "\"";
+        }
+        json += "}";
+        request->send(200, "text/plain", json);
     });
    
 
@@ -71,7 +77,6 @@ void setup() {
 
 void loop() {
     sensors[0].analog();
-    sensors[1].analog();
-    sensors[2].analog();
-    delay(1000);
+    sensors[1].digital();
+    delay(200);
 }
