@@ -17,9 +17,7 @@
 
 // define naming of components 
 #define DEVICE_NAME "Raum 1"
-Sensor sensors[3] = {Sensor("brightness", A3), Sensor("pressure", A2), Sensor("temperature", A1)}; //sensordata as an Object from sensor.h for sake of scalability
-
-
+Sensor sensors[3] = {Sensor("Brightness", A1), Sensor("Pressure", A2), Sensor("Temperture", A3)}; //sensordata as an Object from sensor.h for sake of scalability
 
 
 
@@ -27,19 +25,12 @@ Sensor sensors[3] = {Sensor("brightness", A3), Sensor("pressure", A2), Sensor("t
 
 
 //css, js and html separated for easier editing
-const String html = {
-    "<style>.sensor{border-style: inset;width: fit-content;padding: 0.8em;}</style>"
-    "<script onload='clearInterval(myInterval);'>let myInterval=setInterval(changeValues, 1000);async function request (){const response = await fetch('data');return response.json()} function changeValues (){request().then(data=>{document.getElementById('brightness').innerHTML=data.brightness;});};</script>"
-    "<body><h1>"DEVICE_NAME"</h1>"
-    "<div style='diplay: flex;'>"
-    "<h2>Sensoren</h2>"
-    "<div class='sensor'>"+sensors[0].name+" <a id='"+sensors[0].name+"'>-</a></div>"
-    "<div class='sensor'>"+sensors[1].name+" <a id='"+sensors[1].name+"'>-</a></div>"
-    "<div class='sensor'>"+sensors[2].name+" <a id='"+sensors[2].name+"'>-</a></div>"
-    "</div>"
-    "<div>"
-    "<h2>Steuerelemente</h2>"
-    "</div><body>"
+const String index_html = {
+    "<style>div{width:100%; diplay: flex;float:left;}div.sensor{border-style: inset;width: 10em; padding: 0.5em;}</style>"
+    "<script onload='clearInterval(myInterval);'>const sensors = ['"+sensors[0].name+"','"+sensors[1].name+"','"+sensors[2].name+"'];let myInterval=setInterval(changeValues, 1000);async function request (){const response = await fetch('data');return response.json()} function changeValues (){for(let x in sensors){update(sensors[x]);}} function update(valueId){request().then(data=>{document.getElementById(valueId).innerHTML=data[valueId];});};</script>"
+    "<h1>"DEVICE_NAME"</h1>"
+    "<div><h2>Sensoren</h2></div>"
+    "<div>"+sensorhtml+"</div>"
     };
     
 AsyncWebServer server(80);
@@ -65,11 +56,11 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/html", html);
+        request->send(200, "text/html", index_html);
     });
 
     server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/plain", "{\"brightness\": \"" + String(100*(4096 - sensors[0].value )/4096) + " %\"}");
+        request->send(200, "text/json", "{\""+sensors[0].name+"\": \"" + String(100*(4096 - sensors[0].value )/4096) + " %\", \""+sensors[1].name+"\": \"" + String(sensors[1].value) + "\", \""+sensors[2].name+"\": \"" + String(sensors[2].value) + "\"}");
     });
    
 
@@ -80,5 +71,7 @@ void setup() {
 
 void loop() {
     sensors[0].analog();
+    sensors[1].analog();
+    sensors[2].analog();
     delay(1000);
 }
