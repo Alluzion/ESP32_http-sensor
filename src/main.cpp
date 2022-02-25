@@ -29,7 +29,7 @@ const char* PARAM_MESSAGE = "message";
 
 int sensorValue = 0;
 
-const String htmlPage =  "<script>async function request (){const response = await fetch('http://192.168.2.160/sensorValue');return response.json()} function something (){request().then(data=>{document.getElementById('sensorValue').innerHTML=data.brightness;setTimeout(something,1000)});};  </script><button onclick='something()'>Der testbutton</button><h3>Sensoren Raum 1: </h3><p>Brightness <a id='sensorValue'></a></p>";
+const String htmlPage =  "<script>let myInterval=setInterval(something, 1000);async function request (){const response = await fetch('http://192.168.2.160/sensorValue');return response.json()} function something (){request().then(data=>{document.getElementById('sensorValue').innerHTML=data.brightness;});};  </script><h3>Sensoren Raum 1: </h3><p onload='clearInterval(myInterval);'>Brightness <a id='sensorValue'>-%</a></p>";
 //"<h3>Sensoren Raum 1: </h3><p>Brightness <object id='value' data='sensorValue' height='40' width='80'></object></p><script onload='clearInterval(intervall)'>var obj = document.getElementById('value');let intervall = setInterval(reloadObj, 2500);function reloadObj(){obj.data=obj.data;};</script>";
 
 void notFound(AsyncWebServerRequest *request) {
