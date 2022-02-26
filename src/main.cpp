@@ -5,7 +5,7 @@
 //  * handle missing pages / 404s
 //
 
-#include "sensor.h"
+#include "webinterface.h"
 
 
 void setup() {
@@ -13,7 +13,6 @@ void setup() {
 }
 
 void loop() {
-    sensors[0].analog();
-    sensors[1].digital();
-    delay(200);
+    wert ++;
+    delay(1000);
 }
