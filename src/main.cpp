@@ -17,8 +17,7 @@ void setup() {
         "<style></style>"
         "<h1>Lieblings-ESP</h1>"
         "<div><h2>Variablen: </h2></div>"
-        "<div>"+addVariable(wert, "timer")+addVariable(status, "Status: ")+"</div>"
-        "<div>"+addSwitch(wert)+"</div>";
+        "<div>"+addVariable("timer", wert)+addSwitch("switch", wert)+"</div>";
 }
 
 void loop() {
