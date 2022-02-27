@@ -16,8 +16,9 @@ void setup() {
     index_html = 
         "<style></style>"
         "<h1>Lieblings-ESP</h1>"
+        "<input onchange='logSlider()' type='checkbox'' id='myRange'><script>function logSlider(){console.log(document.getElementById('myRange').value);}</script>"
         "<div><h2>Variablen: </h2></div>"
-        "<div>"+addVariable("timer", wert)+addSwitch("switch", wert)+"</div>";
+        "<div>"+addVariable("timer", wert)+addCheckbox(wert)+addSlider(wert)+"</div>";
 }
 
 void loop() {

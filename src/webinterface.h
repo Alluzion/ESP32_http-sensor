@@ -18,36 +18,41 @@ String index_html; //MainPage can be eddited after all variables have been added
 const String JS = 
     "<script onload='clearInterval(myInterval);'>"
     "const variables=[];"
-    "const switchStates = {};"
+    "const checkboxStates = {};"
     "let myInterval=setInterval(updateVariables, " REFRESH_INTERVALL ");"
     "async function requestVariableState (){const response = await fetch('data');return response.json()};"
     "function updateVariables (){requestVariableState().then(data=>{dt=data;for(let x in variables){document.getElementById(variables[x]).innerHTML=dt[variables[x]];};});};"
-    "async function requestSwitchState (path){var x = await fetch(path);};"
-    "function updateSwitch (switchName){if(switchStates[switchName]){switchStates[switchName]=0;document.getElementById(switchName+'Switch').style='" BUTTONCSS_OFF ";';}else{switchStates[switchName]=1;document.getElementById(switchName+'Switch').style='" BUTTONCSS_ON "';};requestSwitchState('switch?'+switchName+'='+switchStates[switchName]);};"//
+    "async function requestState (path){var x = await fetch(path);};"
+    "function updateCheckbox (checkboxId){if(checkboxStates[checkboxId]){checkboxStates[checkboxId]=0;}else{checkboxStates[checkboxId]=1;};requestState('change?'+checkboxId+'='+checkboxStates[checkboxId]);};"//
+    "function updateSlider (sliderId){requestState('change?'+sliderId+'='+document.getElementById(sliderId).value);};"
     "</script>";
 
 
-int switchCount = 0;
-String sNames[SWITCH_SPACE];
-int* switches[SWITCH_SPACE];
+int checkboxCount = 0;
+int* checkboxes[SWITCH_SPACE];
 
-String addSwitch(String name, int &value){
-    switches[switchCount] = &value;
-    sNames[switchCount] = name;
-    switchCount++;
-    
-    return "<button id='"+name+"Switch' style='" BUTTONCSS_OFF "' onclick=\"updateSwitch ('"+name+"');\">"+name+"</button><script>switchStates[\""+name+"\"]="+String(*switches[switchCount-1])+";</script>";
+String addCheckbox(int &value){
+    checkboxes[checkboxCount] = &value;
+    String id = "checkbox"+String(checkboxCount);
+    checkboxCount++;
+    return "<input id='"+id+"' type='checkbox' onchange=\"updateCheckbox ('"+id+"');\"></input><script>checkboxStates[\""+id+"\"]="+String(*checkboxes[checkboxCount-1])+";</script>";
 }
 
 
-/*
-void (*function)();
-
-String addFunction(void (&fcnPtr)()){
-    function = (&fcnPtr)();
-    return "<button id='function' onclick=\"updateSwitch ('"+name+"');\">"+name+"</button><script>switchStates[\""+name+"\"]="+String(*switches[switchCount-1])+";</script>";
+String addSlider(int &value){
+    checkboxes[checkboxCount] = &value;
+    String id = "slider"+String(checkboxCount);
+    checkboxCount++;
+    return "<input id='"+id+"' type='range' min='0' max='100' onchange=\"updateSlider ('"+id+"');\"></input>";
 }
-*/
+
+String addNumber(int &value){
+    checkboxes[checkboxCount] = &value;
+    String id = "slider"+String(checkboxCount);
+    checkboxCount++;
+    return "<input id='"+id+"' type='number' onchange=\"updateSlider ('"+id+"');\"></input>";
+}
+
 
 
 
@@ -124,18 +129,22 @@ bool startWebinterface(){
 
     
     //address for setting values with buttons and forms
-    server.on("/switch", HTTP_GET, [](AsyncWebServerRequest *request) {
-        for (int i=0; i<switchCount; i++)
-        if (request->hasParam(sNames[i])) {
-            if(request->getParam(sNames[i])->value().toInt()){
-                *switches[i] = 1;
+    server.on("/change", HTTP_GET, [](AsyncWebServerRequest *request) {
+        for (int i=0; i<checkboxCount; i++){
+        if (request->hasParam("checkbox"+String(i))) {
+            if(request->getParam("checkbox"+String(i))->value().toInt()){
+                *checkboxes[i] = 1;
                 
             }
             else{
-                *switches[i] = 0;
+                *checkboxes[i] = 0;
             }            
         }
-        request->send(206, "text/plain", "success");
+        else if(request->hasParam("slider"+String(i))) {
+            *checkboxes[i]=request->getParam("slider"+String(i))->value().toInt();
+        }
+        }
+        request->send(206, "text/plain", "");
     });
     
 
