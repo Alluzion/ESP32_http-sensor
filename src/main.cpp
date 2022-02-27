@@ -6,21 +6,21 @@
 //
 
 #include "webinterface.h"
+
+
 int wert = 0;
-int status = 0;
+String status = "eios";
 
 void setup() {
     startWebinterface();
-    addVariable(wert, "timer");
-    addVariable(status, "Status: ");
     index_html = 
-        "<style>div{width:100%; diplay: flex;float:left;}div.variable{border-style: inset;width: 8em; padding: 0.8em;}</style>"
+        "<style></style>"
         "<h1>Lieblings-ESP</h1>"
         "<div><h2>Variablen: </h2></div>"
-        "<div>"+VARIABLES+"</div>";
+        "<div>"+addVariable(wert, "timer")+addVariable(status, "Status: ")+"</div>"
+        "<div>"+addSwitch(wert)+"</div>";
 }
 
 void loop() {
-    wert ++;
     delay(800);
 }
