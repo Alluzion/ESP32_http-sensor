@@ -6,8 +6,7 @@
 #include "secrets.h" 
 
 #define REFRESH_INTERVALL "1000"
-#define VARIABLE_SPACE 5
-#define SWITCH_SPACE 5
+#define VARIABLE_SPACE 7
 
 
 String index_html; //MainPage can be eddited after all variables have been added
@@ -18,42 +17,10 @@ const String JS =
     "let myInterval=setInterval(updateVariables, " REFRESH_INTERVALL ");"
     "async function requestVariableState (){const response = await fetch('data');return response.json()};"
     "function updateVariables (){requestVariableState().then(data=>{dt=data;for(let x in variables){document.getElementById(variables[x]).innerHTML=dt[variables[x]];};});};"
-    "async function requestState (path){var x = await fetch(path);};"
-    "function updateCheckbox (checkboxId){if(checkboxStates[checkboxId]){checkboxStates[checkboxId]=0;}else{checkboxStates[checkboxId]=1;};requestState('write?checkbox'+checkboxId+'='+checkboxStates[checkboxId]);};"//
-    "function updateSlider (sliderId){requestState('write?'+sliderId+'='+document.getElementById(sliderId).value);};"
+    "async function requestState (path){var x = await fetch(path);};"  
+    "function updateCheckbox (checkboxId){if(checkboxStates[checkboxId]){checkboxStates[checkboxId]=0;}else{checkboxStates[checkboxId]=1;};requestState('data?'+checkboxId+'='+checkboxStates[checkboxId]);};"//
+    "function updateSlider (sliderId){requestState('data?'+sliderId+'='+document.getElementById(sliderId).value);};"
     "</script>";
-
-
-int formsCount = 0;
-String formsId[SWITCH_SPACE];
-int* intForms[SWITCH_SPACE];
-
-
-String addCheckbox(String id, int &variable){
-    intForms[formsCount] = &variable;
-    formsId[formsCount] = id;
-    formsCount++;
-    return "<input id='"+id+"' type='checkbox' onchange=\"updateCheckbox ('"+id+"');\"></input><script>checkboxStates[\""+id+"\"]="+String(*intForms[formsCount-1])+";</script>";
-}
-
-
-String addSlider(String id, int &variable){
-    intForms[formsCount] = &variable;
-    formsId[formsCount] = id;
-    formsCount++;
-    return "<input id='"+id+"' type='range' min='0' max='100' onchange=\"updateSlider ('"+id+"');\"></input>";
-}
-
-String addForm(String id, int &variable){
-    intForms[formsCount] = &variable;
-    formsId[formsCount] = id;
-    formsCount++;
-    return "<input id='"+id+"' type='number' oninput=\"updateSlider ('"+id+"');\"></input>";
-}
-
-
-
-
 
 
 int variableCount = 0;
@@ -63,6 +30,35 @@ String variableId[VARIABLE_SPACE]; //All the variableId are saved here
 int* integers[VARIABLE_SPACE];
 float* floats[VARIABLE_SPACE];
 String* strings[VARIABLE_SPACE];
+
+
+String addCheckbox(String id, int &variable){
+    integers[variableCount] = &variable;
+    variableId[variableCount] = id;
+    variableCount++;
+    return "<input id='"+id+"' type='checkbox' onchange=\"updateCheckbox ('"+id+"');\"></input><script>checkboxStates[\""+id+"\"]="+String(*integers[variableCount-1])+";</script>";
+}
+
+
+String addSlider(String id, int &variable){
+    integers[variableCount] = &variable;
+    variableId[variableCount] = id;
+    variableCount++;
+    return "<input id='"+id+"' type='range' min='0' max='100' onchange=\"updateSlider ('"+id+"');\"></input>";
+}
+
+String addForm(String id, int &variable){
+    integers[variableCount] = &variable;
+    variableId[variableCount] = id;
+    variableCount++;
+    return "<input id='"+id+"' type='number' oninput=\"updateSlider ('"+id+"');\"></input>";
+}
+
+
+
+
+
+
 
 //Adding a variable to the update-cycle
 String addVariable(String id, int &variable){ 
@@ -108,6 +104,11 @@ void Webinterface(){
     server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request){
         String json = "{";
         for(int i=0; i<variableCount; i++){
+
+            if(request->hasParam(variableId[i])) {
+                *integers[i]=request->getParam(variableId[i])->value().toInt();
+            }
+
             if (i != 0) json += ", ";
             if (integers[i]){
                 json += "\"" + variableId[i] + "\": " + String(*integers[i]);
@@ -124,25 +125,6 @@ void Webinterface(){
     });
 
 
-    
-    //address for setting values with buttons and forms
-    server.on("/write", HTTP_GET, [](AsyncWebServerRequest *request) {
-        for (int i=0; i<formsCount; i++){
-        if (request->hasParam("checkbox"+formsId[i])) {
-            if(request->getParam("checkbox"+formsId[i])->value().toInt()){
-                *intForms[i] = 1;
-                
-            }
-            else{
-                *intForms[i] = 0;
-            }            
-        }
-        else if(request->hasParam(formsId[i])) {
-            *intForms[i]=request->getParam(formsId[i])->value().toInt();
-        }
-        }
-        request->send(206, "text/plain", "");
-    });
     
 
     server.begin();
