@@ -27,28 +27,28 @@ int variableCount = 0;
 String variableId[VARIABLE_SPACE]; //All the variableId are saved here
 
 //Pointer-arrays for useful Data-Types
-int* integers[VARIABLE_SPACE];
-float* floats[VARIABLE_SPACE];
-String* strings[VARIABLE_SPACE];
+int* intReferenceStack[VARIABLE_SPACE];
+float* floatReferenceStack[VARIABLE_SPACE];
+String* stringReferenceStack[VARIABLE_SPACE];
 
 
 String addCheckbox(String id, int &variable){
-    integers[variableCount] = &variable;
+    intReferenceStack[variableCount] = &variable;
     variableId[variableCount] = id;
     variableCount++;
-    return "<input id='"+id+"' type='checkbox' onchange=\"updateCheckbox ('"+id+"');\"></input><script>checkboxStates[\""+id+"\"]="+String(*integers[variableCount-1])+";</script>";
+    return "<input id='"+id+"' type='checkbox' onchange=\"updateCheckbox ('"+id+"');\"></input><script>checkboxStates[\""+id+"\"]="+String(*intReferenceStack[variableCount-1])+";</script>";
 }
 
 
 String addSlider(String id, int &variable){
-    integers[variableCount] = &variable;
+    intReferenceStack[variableCount] = &variable;
     variableId[variableCount] = id;
     variableCount++;
     return "<input id='"+id+"' type='range' min='0' max='100' onchange=\"updateSlider ('"+id+"');\"></input>";
 }
 
 String addForm(String id, int &variable){
-    integers[variableCount] = &variable;
+    intReferenceStack[variableCount] = &variable;
     variableId[variableCount] = id;
     variableCount++;
     return "<input id='"+id+"' type='number' oninput=\"updateSlider ('"+id+"');\"></input>";
@@ -57,26 +57,23 @@ String addForm(String id, int &variable){
 
 
 
-
-
-
 //Adding a variable to the update-cycle
 String addVariable(String id, int &variable){ 
-    integers[variableCount] = &variable; //Save the Reference to the corresponding array
+    intReferenceStack[variableCount] = &variable; //Save the Reference to the corresponding array
     variableId[variableCount] = id; //Save the id to the variableId array
     variableCount++; //Stepusp variableCount to keep track of array-size
     return "<a id='"+id+"'>-</a></div><script>variables.push('"+id+"'); </script>";
 }
-//See Above but for floats
+//See Above but for floatReferenceStack
 String addVariable(String id, float &variable){
-    floats[variableCount] = &variable;
+    floatReferenceStack[variableCount] = &variable;
     variableId[variableCount] = id;
     variableCount++;
     return "<a id='"+id+"'>-</a></div><script>variables.push('"+id+"'); </script>";
 }
-//See Above but for Strings
+//See Above but for StringReferenceStack
 String addVariable(String id, String &variable){
-    strings[variableCount] = &variable;
+    stringReferenceStack[variableCount] = &variable;
     variableId[variableCount] = id;
     variableCount++;
     return "<a id='"+id+"'>-</a></div><script>variables.push('"+id+"'); </script>";
@@ -106,18 +103,18 @@ void Webinterface(){
         for(int i=0; i<variableCount; i++){
 
             if(request->hasParam(variableId[i])) {
-                *integers[i]=request->getParam(variableId[i])->value().toInt();
+                *intReferenceStack[i]=request->getParam(variableId[i])->value().toInt();
             }
 
             if (i != 0) json += ", ";
-            if (integers[i]){
-                json += "\"" + variableId[i] + "\": " + String(*integers[i]);
+            if (intReferenceStack[i]){
+                json += "\"" + variableId[i] + "\": " + String(*intReferenceStack[i]);
             }
-            if (floats[i]){
-                json += "\"" + variableId[i] + "\": " + String(*floats[i]);
+            if (floatReferenceStack[i]){
+                json += "\"" + variableId[i] + "\": " + String(*floatReferenceStack[i]);
             }
-            if (strings[i]){
-                json += "\"" + variableId[i] + "\": \"" + String(*strings[i])  + "\"";
+            if (stringReferenceStack[i]){
+                json += "\"" + variableId[i] + "\": \"" + String(*stringReferenceStack[i])  + "\"";
             }
         }
         json += "}";
